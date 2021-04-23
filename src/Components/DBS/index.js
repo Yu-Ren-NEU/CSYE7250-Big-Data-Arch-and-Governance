@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
-import { Select, Button, Modal, message, Table, Space } from 'antd';
+import { Select, Button, Modal, message, Table, Space, Tooltip } from 'antd';
+import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getRelationshipsRequest, getPropertiesRequest } from './api';
 const { Option } = Select;
 
 function DBS() {
 
-    const [teamValue, setTeamValue] = useState('');
+    const [dbName, setDbName] = useState('');
+    const [domainName, setDomainName] = useState('');
     const [databaseList, setDatabaseList] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [isTechModalVisible, setIsTechModalVisible] = useState(false);
-    const [businessMetadataContent, setBusinessMetadataContent] = useState(null);
-    const [businessTerm, setBusinessTerm] = useState('');
-    const [technicalMetadataContent, setTechnicalMetadataContent] = useState(null);
+    const [isNodeModalVisible, setIsNodeModalVisible] = useState(false);
+    const [isRelModalVisible, setIsRelModalVisible] = useState(false);
+    const [isProModalVisible, setIsProModalVisible] = useState(false);
+    const [businessTerms, setBusinessTerms] = useState(null);
+    const [nodeName, setNodeName] = useState('');
+    const [NodeModalContent, setNodeModalContent] = useState(null);
+    const [RelModalContent, setRelModalContent] = useState(null);
+    const [ProModalContent, setProModalContent] = useState(null);
 
+    // handle the modal for showing business terms
     const showModal = () => {
         setIsModalVisible(true);
     };
@@ -25,176 +32,275 @@ function DBS() {
         setIsModalVisible(false);
     };
 
-    const showTechModal = () => {
-        setIsTechModalVisible(true);
+    // handle the modal for showing node
+    const showNodeModal = () => {
+        setIsNodeModalVisible(true);
     };
 
-    const handleTechOk = () => {
-        setIsTechModalVisible(false);
+    const handleNodeOk = () => {
+        setIsNodeModalVisible(false);
     };
 
-    const handleTechCancel = () => {
-        setIsTechModalVisible(false);
+    const handleNodeCancel = () => {
+        setIsNodeModalVisible(false);
+    };
+
+    // handle the modal for showing relationship
+    const showRelModal = () => {
+        setIsRelModalVisible(true);
+    };
+
+    const handleRelOk = () => {
+        setIsRelModalVisible(false);
+    };
+
+    const handleRelCancel = () => {
+        setIsRelModalVisible(false);
+    };
+
+    // handle the modal for showing property
+    const showProModal = () => {
+        setIsProModalVisible(true);
+    };
+
+    const handleProOk = () => {
+        setIsProModalVisible(false);
+    };
+
+    const handleProCancel = () => {
+        setIsProModalVisible(false);
     };
 
     // change value while value changed
     const onChange = value => {
-        setTeamValue(value);
+        const e = JSON.parse(value);
+        setDbName(e.DBName);
+        setDomainName(e.DomainName);
     }
 
     // get database list info
     const getDatabaseList = () => {
-        setDatabaseList([
-            {
-                value: 'team1',
-            },
-            {
-                value: 'team2',
-            },
-            {
-                value: 'team3',
-            },
-            {
-                value: 'team4',
-            },
-            {
-                value: 'team5',
-            },
-        ]);
-        console.log("1111");
+        getDatabaseListRequest().then(response => {
+            console.log("********database list********");
+            console.log(response.data.text);
+            console.log("********database list********");
+            let databaseList = [];
+            response.data.text.forEach((e, i) => {
+                databaseList.push({
+                    key: `${i}`,
+                    DBName: e.DBName,
+                    DomainName: e.DomainName,
+                })
+            });
+            setDatabaseList(databaseList);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
     }
 
-    // search business terms about the chosen database
+    // search all of the business terms
     const searchInformation = () => {
-        if (teamValue && teamValue !== '') {
-            setBusinessMetadataContent(null);
-            showModal();
-            // get business metadata from database
-            setBusinessMetadataContent([
-                {
-                    key: '1',
-                    businessTerm: 'Business Term1',
-                    businessDesc: 'Business Desc1',
-                    businessType: 'Business Type1',
-                    propertyId: '1',
-                },
-                {
-                    key: '2',
-                    businessTerm: 'Business Term2',
-                    businessDesc: 'Business Desc2',
-                    businessType: 'Business Type2',
-                    propertyId: '2',
-                },
-                {
-                    key: '3',
-                    businessTerm: 'Business Term3',
-                    businessDesc: 'Business Desc3',
-                    businessType: 'Business Type3',
-                    propertyId: '3',
-                },
-                {
-                    key: '4',
-                    businessTerm: 'Business Term4',
-                    businessDesc: 'Business Desc4',
-                    businessType: 'Business Type4',
-                    propertyId: '4',
-                },
-                {
-                    key: '5',
-                    businessTerm: 'Business Term5',
-                    businessDesc: 'Business Desc5',
-                    businessType: 'Business Type5',
-                    propertyId: '5',
-                },
-                {
-                    key: '6',
-                    businessTerm: 'Business Term6',
-                    businessDesc: 'Business Desc6',
-                    businessType: 'Business Type6',
-                    propertyId: '6',
-                },
-                {
-                    key: '7',
-                    businessTerm: 'Business Term7',
-                    businessDesc: 'Business Desc7',
-                    businessType: 'Business Type7',
-                    propertyId: '7',
-                },
-            ]);
+        setBusinessTerms(null);
+        showModal();
+        // get business metadata from database
+        getBusinessTermsRequest().then(response => {
+            console.log("********business terms information********");
+            console.log(response.data.text);
+            console.log("********business terms information********");
+            let businessTerms = [];
+            response.data.text.forEach((e, i) => {
+                businessTerms.push({
+                    key: `${i}`,
+                    businessTerm: e.DomainName,
+                    businessDesc: e.BusinessDesc,
+                    businessType: e.BusType,
+                    propertyId: e.PropertyId
+                });
+            });
+            setBusinessTerms(businessTerms);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
+    }
+
+    // search all nodes about the chosen database
+    const searchNodeInformation = () => {
+        if (domainName && domainName !== '') {
+            setNodeModalContent(null);
+            showNodeModal();
+            // get nodes information from database
+            getNodesRequest(domainName).then(response => {
+                console.log("********nodes information********");
+                console.log(response.data.text);
+                console.log("********nodes information********");
+                let NodeModalContent = [];
+                response.data.text.forEach((e, i) => {
+                    NodeModalContent.push({
+                        key: `${i}`,
+                        label: e.Label,
+                        counts: e.Counts,
+                        nodeId: e.NodeId,
+                    });
+                });
+                setNodeModalContent(NodeModalContent);
+            }).catch(err => {
+                message.error('Network is unstable.')
+            })
         } else {
             message.error('Value is empty!');
         }
     }
 
-    // search technical term about the business term
-    const searchTechnicalTerm = (propertyId, businessTerm) => {
-        setTechnicalMetadataContent(null);
-        setBusinessTerm(businessTerm)
-        showTechModal();
-        // get technical metadata from database
-        setTechnicalMetadataContent([
-            {
-                key: '1',
-                technicalTerm: 'Technical Term1',
-                technicalDesc: 'Technical Desc1',
-                technicalType: 'Technical Type1',
-            },
-        ]);
+    // search relationship about the node
+    const searchRelationship = (nodeId, nodeName) => {
+        setRelModalContent(null);
+        setNodeName(nodeName)
+        showRelModal();
+        // get relationship of the node from database
+        getRelationshipsRequest(nodeId).then(response => {
+            console.log("********relationships information********");
+            console.log(response.data.text);
+            console.log("********relationships information********");
+            let RelModalContent = [];
+            response.data.text.forEach((e, i) => {
+                RelModalContent.push({
+                    key: `${i}`,
+                    childNode: e.ChildNode,
+                    relDesc: e.RelDesc,
+                });
+            });
+            setRelModalContent(RelModalContent);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
     }
 
+    // search property about the node
+    const searchProperty = (nodeId, nodeName) => {
+        setProModalContent(null);
+        setNodeName(nodeName)
+        showProModal();
+        // get properties of the node from database
+        getPropertiesRequest(nodeId).then(response => {
+            console.log("********properties information********");
+            console.log(response.data.text);
+            console.log("********properties information********");
+            let ProModalContent = [];
+            response.data.text.forEach((e, i) => {
+                ProModalContent.push({
+                    key: `${i}`,
+                    techTerm: e.TechTerm,
+                    uniqCons: e.UniqueConstraint,
+                    existCons: e.ExistingConstraint,
+                });
+            });
+            setProModalContent(ProModalContent);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
+    }
+
+    // Init => Get database list
     useEffect(() => {
         getDatabaseList();
     }, []);
 
-    const businessMetadataColumn = [
+    // Column for business terms
+    const businessTermsColumn = [
         {
             title: 'Business Term',
             dataIndex: 'businessTerm',
             key: 'businessTerm',
+            width: 150,
         },
         {
             title: 'Business Description',
             dataIndex: 'businessDesc',
             key: 'businessDesc',
+            render: (text, record) => (
+                <Tooltip title={record.businessDesc}>
+                    <span className="ellipsis">{record.businessDesc}</span>
+                </Tooltip>
+            ),
         },
         {
             title: 'Business Type',
             dataIndex: 'businessType',
             key: 'businessType',
+            width: 150,
+        },
+    ];
+
+    // Columns for nodes
+    const nodeModalColumn = [
+        {
+            title: 'Label',
+            dataIndex: 'label',
+            key: 'label',
+        },
+        {
+            title: 'Counts',
+            dataIndex: 'counts',
+            key: 'counts',
         },
         {
             title: 'Action',
             key: 'action',
+            width: 250,
             render: (text, record) => (
                 <Space size="middle">
-                    <Button type='primary' shape='round' onClick={() => searchTechnicalTerm(record.propertyId, record.businessTerm)}>
-                        View Associated Tech Term
+                    <Button type='primary' shape='round' onClick={() => searchRelationship(record.nodeId, record.label)}>
+                        Relationships
+                    </Button>
+                    <Button type='primary' shape='round' onClick={() => searchProperty(record.nodeId, record.label)}>
+                        Properties
                     </Button>
                 </Space>
             ),
         },
     ];
 
-    const technicalMetadataColumn = [
+    // Columns for relationship
+    const relModalColumn = [
+        {
+            title: 'Child Node',
+            dataIndex: 'childNode',
+            key: 'childNode',
+        },
+        {
+            title: 'Relationship Description',
+            dataIndex: 'relDesc',
+            key: 'relDesc',
+        },
+    ];
+
+    // Columns for property
+    const proModalColumn = [
         {
             title: 'Technical Term',
-            dataIndex: 'technicalTerm',
-            key: 'technicalTerm',
+            dataIndex: 'techTerm',
+            key: 'techTerm',
         },
         {
-            title: 'Technical Description',
-            dataIndex: 'technicalDesc',
-            key: 'technicalDesc',
+            title: 'Unique Constraint',
+            dataIndex: 'uniqCons',
+            key: 'uniqCons',
         },
         {
-            title: 'Technical Type',
-            dataIndex: 'technicalType',
-            key: 'technicalType',
+            title: 'Existing Constraint',
+            dataIndex: 'existCons',
+            key: 'existCons',
         },
     ];
 
     return (
         <div className="container">
+            <Button type="primary" shape="round" style={{ width: 350 }} onClick={searchInformation}>
+                Browse Business Terms
+            </Button>
+            <br />
+            <br />
+            <br />
             <Select
                 showSearch
                 style={{ width: 200 }}
@@ -206,25 +312,31 @@ function DBS() {
                 }
             >
                 {databaseList.map((element, index) =>
-                    <Option value={element.value}>{element.value}</Option>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
                 )}
             </Select>
-            <br />
-            <br />
-            <br />
-            <Button type="primary" shape="round" onClick={searchInformation}>
-                Browse Business Terms
-            </Button>
-            <Button type="primary" shape="round" style={{ marginLeft: '10px' }}>
-                Add Business Terms
+            <Button type="primary" shape="round" style={{ marginLeft: '15px' }} onClick={searchNodeInformation}>
+                Browse Nodes
             </Button>
 
-            <Modal title={teamValue} visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={800}>
-                <Table columns={businessMetadataColumn} dataSource={businessMetadataContent} pagination={{ pageSize: 5 }} />
+            {/* modal for showing Business Terms */}
+            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={800}>
+                <Table columns={businessTermsColumn} dataSource={businessTerms} pagination={{ pageSize: 5 }} />
             </Modal>
 
-            <Modal title={businessTerm} visible={isTechModalVisible} onOk={handleTechOk} onCancel={handleTechCancel} maskClosable={false} width={600}>
-                <Table columns={technicalMetadataColumn} dataSource={technicalMetadataContent} pagination={false} />
+            {/* modal for showing nodes */}
+            <Modal title={dbName} visible={isNodeModalVisible} onOk={handleNodeOk} onCancel={handleNodeCancel} maskClosable={false} width={600}>
+                <Table columns={nodeModalColumn} dataSource={NodeModalContent} pagination={{ pageSize: 5 }} />
+            </Modal>
+
+            {/* modal for showing relationship */}
+            <Modal title={nodeName} visible={isRelModalVisible} onOk={handleRelOk} onCancel={handleRelCancel} maskClosable={false} width={600}>
+                <Table columns={relModalColumn} dataSource={RelModalContent} pagination={{ pageSize: 5 }} />
+            </Modal>
+
+            {/* modal for showing property */}
+            <Modal title={nodeName} visible={isProModalVisible} onOk={handleProOk} onCancel={handleProCancel} maskClosable={false} width={600}>
+                <Table columns={proModalColumn} dataSource={ProModalContent} pagination={{ pageSize: 5 }} />
             </Modal>
         </div>
     );
