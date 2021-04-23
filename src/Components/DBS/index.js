@@ -229,6 +229,18 @@ function DBS() {
             key: 'businessType',
             width: 150,
         },
+        {
+            title: 'Technical Term',
+            dataIndex: 'technicalTerm',
+            key: 'technicalTerm',
+            width: 150,
+        },
+        {
+            title: 'Technical Description',
+            dataIndex: 'technicalDesc',
+            key: 'technicalDesc',
+            width: 180,
+        },
     ];
 
     // Columns for nodes
@@ -296,7 +308,7 @@ function DBS() {
     return (
         <div className="container">
             <Button type="primary" shape="round" style={{ width: 350 }} onClick={searchInformation}>
-                Browse Business Terms
+                Browse Metadata
             </Button>
             <br />
             <br />
@@ -410,7 +422,7 @@ function DBS() {
             </Button>
 
             {/* modal for showing Business Terms */}
-            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={800}>
+            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={1000}>
                 <Table columns={businessTermsColumn} dataSource={businessTerms} pagination={{ pageSize: 5 }} />
             </Modal>
 
