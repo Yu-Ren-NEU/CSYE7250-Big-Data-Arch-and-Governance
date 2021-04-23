@@ -318,6 +318,96 @@ function DBS() {
             <Button type="primary" shape="round" style={{ marginLeft: '15px' }} onClick={searchNodeInformation}>
                 Browse Nodes
             </Button>
+            <br />
+            <br />
+            <br />
+            <br />
+            <Select
+                showSearch
+                style={{ width: 200 }}
+                placeholder="Domain"
+                optionFilterProp="children"
+                onChange={onChange}
+                filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+            >
+                {/* {databaseList.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
+                )} */}
+                <Option key="1" value="example1">example1</Option>
+                <Option key="2" value="example2">example2</Option>
+                <Option key="3" value="example3">example3</Option>
+                <Option key="4" value="example4">example4</Option>
+                <Option key="5" value="example5">example5</Option>
+            </Select>
+            <Select
+                showSearch
+                style={{ width: 200, marginLeft: 20 }}
+                placeholder="Database"
+                optionFilterProp="children"
+                onChange={onChange}
+                filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+            >
+                {/* {databaseList.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
+                )} */}
+                <Option key="1" value="example1">example1</Option>
+                <Option key="2" value="example2">example2</Option>
+                <Option key="3" value="example3">example3</Option>
+                <Option key="4" value="example4">example4</Option>
+                <Option key="5" value="example5">example5</Option>
+            </Select>
+            <br />
+            <br />
+            <Select
+                showSearch
+                style={{ width: 200 }}
+                placeholder="Business Term"
+                optionFilterProp="children"
+                onChange={onChange}
+                filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+            >
+                {/* {databaseList.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
+                )} */}
+                <Option key="1" value="example1">example1</Option>
+                <Option key="2" value="example2">example2</Option>
+                <Option key="3" value="example3">example3</Option>
+                <Option key="4" value="example4">example4</Option>
+                <Option key="5" value="example5">example5</Option>
+            </Select>
+            <Select
+                showSearch
+                style={{ width: 200, marginLeft: 20 }}
+                placeholder="Parameter"
+                optionFilterProp="children"
+                onChange={onChange}
+                filterOption={(input, option) =>
+                    option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                }
+            >
+                {/* {databaseList.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
+                )} */}
+                <Option key="1" value="example1">example1</Option>
+                <Option key="2" value="example2">example2</Option>
+                <Option key="3" value="example3">example3</Option>
+                <Option key="4" value="example4">example4</Option>
+                <Option key="5" value="example5">example5</Option>
+            </Select>
+            <br />
+            <br />
+            <Button type="primary" shape="round">
+                DELETE
+            </Button>
+            <Button type="primary" shape="round" style={{ marginLeft: '15px' }}>
+                ADD
+            </Button>
 
             {/* modal for showing Business Terms */}
             <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={800}>
