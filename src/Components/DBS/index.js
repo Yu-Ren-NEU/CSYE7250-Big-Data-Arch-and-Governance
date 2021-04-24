@@ -18,6 +18,10 @@ function DBS() {
     const [NodeModalContent, setNodeModalContent] = useState(null);
     const [RelModalContent, setRelModalContent] = useState(null);
     const [ProModalContent, setProModalContent] = useState(null);
+    const [domainChosen, setDomainChosen] = useState('');
+    const [databaseChosen, setDatabaseChosen] = useState('');
+    const [businessTermChosen, setBusinessTermChosen] = useState('');
+    const [parameterChosen, setParameterChosen] = useState('');
 
     // handle the modal for showing business terms
     const showModal = () => {
@@ -76,6 +80,30 @@ function DBS() {
         const e = JSON.parse(value);
         setDbName(e.DBName);
         setDomainName(e.DomainName);
+    }
+
+    // change value while value changed
+    const onChangeOfDomain = value => {
+        // const e = JSON.parse(value);
+        setDomainChosen(value);
+    }
+
+    // change value while value changed
+    const onChangeOfDatabase = value => {
+        // const e = JSON.parse(value);
+        setDatabaseChosen(value);
+    }
+
+    // change value while value changed
+    const onChangeOfBusinessTerm = value => {
+        // const e = JSON.parse(value);
+        setBusinessTermChosen(value);
+    }
+
+    // change value while value changed
+    const onChangeOfParameter = value => {
+        // const e = JSON.parse(value);
+        setParameterChosen(value);
     }
 
     // get database list info
@@ -339,7 +367,7 @@ function DBS() {
                 style={{ width: 200 }}
                 placeholder="Domain"
                 optionFilterProp="children"
-                onChange={onChange}
+                onChange={onChangeOfDomain}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -358,7 +386,7 @@ function DBS() {
                 style={{ width: 200, marginLeft: 20 }}
                 placeholder="Database"
                 optionFilterProp="children"
-                onChange={onChange}
+                onChange={onChangeOfDatabase}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -379,7 +407,7 @@ function DBS() {
                 style={{ width: 200 }}
                 placeholder="Business Term"
                 optionFilterProp="children"
-                onChange={onChange}
+                onChange={onChangeOfBusinessTerm}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -398,7 +426,7 @@ function DBS() {
                 style={{ width: 200, marginLeft: 20 }}
                 placeholder="Parameter"
                 optionFilterProp="children"
-                onChange={onChange}
+                onChange={onChangeOfParameter}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
