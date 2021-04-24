@@ -110,14 +110,14 @@ function DBS() {
     const getDatabaseList = () => {
         getDatabaseListRequest().then(response => {
             console.log("********database list********");
-            console.log(response.data.text);
+            console.log(response.data);
             console.log("********database list********");
             let databaseList = [];
-            response.data.text.forEach((e, i) => {
+            response.data.forEach((e, i) => {
                 databaseList.push({
                     key: `${i}`,
-                    DBName: e.DBName,
-                    DomainName: e.DomainName,
+                    DBName: e.dbName,
+                    DomainName: e.domainName,
                 })
             });
             setDatabaseList(databaseList);
@@ -133,16 +133,16 @@ function DBS() {
         // get business metadata from database
         getBusinessTermsRequest().then(response => {
             console.log("********business terms information********");
-            console.log(response.data.text);
+            console.log(response.data);
             console.log("********business terms information********");
             let businessTerms = [];
-            response.data.text.forEach((e, i) => {
+            response.data.forEach((e, i) => {
                 businessTerms.push({
                     key: `${i}`,
-                    businessTerm: e.DomainName,
-                    businessDesc: e.BusinessDesc,
-                    businessType: e.BusType,
-                    propertyId: e.PropertyId
+                    businessTerm: e.domainName,
+                    businessDesc: e.businessDesc,
+                    businessType: e.busType,
+                    propertyId: e.propertyId
                 });
             });
             setBusinessTerms(businessTerms);
@@ -159,15 +159,15 @@ function DBS() {
             // get nodes information from database
             getNodesRequest(domainName).then(response => {
                 console.log("********nodes information********");
-                console.log(response.data.text);
+                console.log(response.data);
                 console.log("********nodes information********");
                 let NodeModalContent = [];
-                response.data.text.forEach((e, i) => {
+                response.data.forEach((e, i) => {
                     NodeModalContent.push({
                         key: `${i}`,
-                        label: e.Label,
-                        counts: e.Counts,
-                        nodeId: e.NodeId,
+                        label: e.label,
+                        counts: e.counts,
+                        nodeId: e.nodeId,
                     });
                 });
                 setNodeModalContent(NodeModalContent);
@@ -187,14 +187,14 @@ function DBS() {
         // get relationship of the node from database
         getRelationshipsRequest(nodeId).then(response => {
             console.log("********relationships information********");
-            console.log(response.data.text);
+            console.log(response.data);
             console.log("********relationships information********");
             let RelModalContent = [];
-            response.data.text.forEach((e, i) => {
+            response.data.forEach((e, i) => {
                 RelModalContent.push({
                     key: `${i}`,
-                    childNode: e.ChildNode,
-                    relDesc: e.RelDesc,
+                    childNode: e.childNode,
+                    relDesc: e.relDesc,
                 });
             });
             setRelModalContent(RelModalContent);
@@ -211,15 +211,15 @@ function DBS() {
         // get properties of the node from database
         getPropertiesRequest(nodeId).then(response => {
             console.log("********properties information********");
-            console.log(response.data.text);
+            console.log(response.data);
             console.log("********properties information********");
             let ProModalContent = [];
-            response.data.text.forEach((e, i) => {
+            response.data.forEach((e, i) => {
                 ProModalContent.push({
                     key: `${i}`,
-                    techTerm: e.TechTerm,
-                    uniqCons: e.UniqueConstraint,
-                    existCons: e.ExistingConstraint,
+                    techTerm: e.techTerm,
+                    uniqCons: e.uniqueConstraint,
+                    existCons: e.existingConstraint,
                 });
             });
             setProModalContent(ProModalContent);
