@@ -1,19 +1,27 @@
 import Axios from 'axios';
 
 // server url
-const url = 'http://142.173.12.1:8000'
+const url = 'http://localhost:8080'
 
 export const getBusinessTermsRequest = () =>
-    Axios.get(`${url}/businessterms`);
+    Axios.get(`${url}/businessterms`, {});
 
 export const getDatabaseListRequest = () =>
-    Axios.get(`${url}/domains`);
+    Axios.get(`${url}/getDomains`);
 
-export const getNodesRequest = domainName =>
-    Axios.get(`${url}/nodes?domain="${domainName}"`);
+export const getNodesRequest = () =>
+    Axios.get(`${url}/getAllNodes`);
 
-export const getRelationshipsRequest = nodeId =>
-    Axios.get(`${url}/relationships?node=${nodeId}`);
+export const getPropertiesBasedOnDBRequest = DBName =>
+    Axios.get(`${url}/properties/dbName/${DBName}`)
 
-export const getPropertiesRequest = nodeId =>
-    Axios.get(`${url}/properties?node=${nodeId}`);
+export const postPropertyToBusinessTerm = params => 
+    Axios.post(`${url}/businessterms`, {
+        data: params
+    })
+
+// export const getRelationshipsRequest = nodeId =>
+//     Axios.get(`${url}/relationships?node=${nodeId}`);
+
+// export const getPropertiesRequest = nodeId =>
+//     Axios.get(`${url}/properties?node=${nodeId}`);

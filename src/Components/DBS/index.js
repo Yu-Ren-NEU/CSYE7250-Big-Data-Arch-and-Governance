@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
 import { Select, Button, Modal, message, Table, Space, Tooltip } from 'antd';
-import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getRelationshipsRequest, getPropertiesRequest } from './api';
+import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
 const { Option } = Select;
 
 function DBS() {
@@ -9,19 +9,20 @@ function DBS() {
     const [dbName, setDbName] = useState('');
     const [domainName, setDomainName] = useState('');
     const [databaseList, setDatabaseList] = useState([]);
+    const [businessTerms, setBusinessTerms] = useState([]);
+    const [nodesInformation, setNodesInformation] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [isNodeModalVisible, setIsNodeModalVisible] = useState(false);
     const [isRelModalVisible, setIsRelModalVisible] = useState(false);
     const [isProModalVisible, setIsProModalVisible] = useState(false);
-    const [businessTerms, setBusinessTerms] = useState(null);
-    const [nodeName, setNodeName] = useState('');
-    const [NodeModalContent, setNodeModalContent] = useState(null);
-    const [RelModalContent, setRelModalContent] = useState(null);
-    const [ProModalContent, setProModalContent] = useState(null);
+    const [NodeModalContent, setNodeModalContent] = useState([]);
+    const [RelModalContent, setRelModalContent] = useState([]);
+    const [ProModalContent, setProModalContent] = useState([]);
     const [domainChosen, setDomainChosen] = useState('');
-    const [databaseChosen, setDatabaseChosen] = useState('');
     const [businessTermChosen, setBusinessTermChosen] = useState('');
     const [parameterChosen, setParameterChosen] = useState('');
+    const [propertyChoices, setPropertyChoices] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
 
     // handle the modal for showing business terms
     const showModal = () => {
@@ -86,12 +87,23 @@ function DBS() {
     const onChangeOfDomain = value => {
         // const e = JSON.parse(value);
         setDomainChosen(value);
-    }
-
-    // change value while value changed
-    const onChangeOfDatabase = value => {
-        // const e = JSON.parse(value);
-        setDatabaseChosen(value);
+        setPropertyChoices([]);
+        getPropertiesBasedOnDBRequest(JSON.parse(value).DBName).then(response => {
+            console.log("********properties list********");
+            console.log(response.data);
+            console.log("********properties list********");
+            let propertyChoices = [];
+            response.data.forEach((e, i) => {
+                propertyChoices.push({
+                    key: `${i}`,
+                    techTerm: e.techTerm,
+                    property: e,
+                });
+            });
+            setPropertyChoices(propertyChoices);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
     }
 
     // change value while value changed
@@ -127,9 +139,9 @@ function DBS() {
     }
 
     // search all of the business terms
-    const searchInformation = () => {
-        setBusinessTerms(null);
-        showModal();
+    const getInformation = () => {
+        // setBusinessTerms(null);
+        // showModal();
         // get business metadata from database
         getBusinessTermsRequest().then(response => {
             console.log("********business terms information********");
@@ -139,10 +151,11 @@ function DBS() {
             response.data.forEach((e, i) => {
                 businessTerms.push({
                     key: `${i}`,
-                    businessTerm: e.domainName,
+                    businessId: e.businessId,
                     businessDesc: e.businessDesc,
                     businessType: e.busType,
-                    propertyId: e.propertyId
+                    propertyList: e.propertyList,
+                    businessTerm: e,
                 });
             });
             setBusinessTerms(businessTerms);
@@ -151,96 +164,102 @@ function DBS() {
         })
     }
 
+    // get all nodes information
+    const getNodes = () => {
+        getNodesRequest().then(response => {
+            console.log("********Nodes List********");
+            console.log(response.data);
+            console.log("********Nodes List********");
+            let nodesInformation = [];
+            response.data.forEach((e, i) => {
+                nodesInformation.push({
+                    key: `${i}`,
+                    label: e.label,
+                    counts: e.counts,
+                    DBName: e.dbName,
+                    propertyList: e.props,
+                    relationshipList: e.relList,
+                })
+            });
+            setNodesInformation(nodesInformation);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
+    }
+
+    // show property of chosen business term
+    const showProperty = propertyList => {
+        let ProModalContent = [];
+        propertyList.forEach((e, i) => {
+            ProModalContent.push({
+                key: `${i}`,
+                techTerm: e.techTerm,
+                uniqCons: e.uniqueConstraints,
+                existCons: e.existingConstraints,
+            })
+        });
+        setProModalContent(ProModalContent);
+        showProModal();
+    }
+
+    // show relationships of chosen business term
+    const showRelationships = relationshipList => {
+        let RelModalContent = [];
+        relationshipList.forEach((e, i) => {
+            RelModalContent.push({
+                key: `${i}`,
+                relId: e.relationshipId,
+                relDesc: e.relDesc,
+            })
+        });
+        setRelModalContent(RelModalContent);
+        showRelModal();
+    }
+
     // search all nodes about the chosen database
     const searchNodeInformation = () => {
         if (domainName && domainName !== '') {
             setNodeModalContent(null);
             showNodeModal();
-            // get nodes information from database
-            getNodesRequest(domainName).then(response => {
-                console.log("********nodes information********");
-                console.log(response.data);
-                console.log("********nodes information********");
-                let NodeModalContent = [];
-                response.data.forEach((e, i) => {
-                    NodeModalContent.push({
-                        key: `${i}`,
-                        label: e.label,
-                        counts: e.counts,
-                        nodeId: e.nodeId,
-                    });
-                });
-                setNodeModalContent(NodeModalContent);
-            }).catch(err => {
-                message.error('Network is unstable.')
-            })
+            // filer nodes information in all nodes
+            setNodeModalContent(nodesInformation.filter(e => e.DBName === dbName));
         } else {
             message.error('Value is empty!');
         }
     }
 
-    // search relationship about the node
-    const searchRelationship = (nodeId, nodeName) => {
-        setRelModalContent(null);
-        setNodeName(nodeName)
-        showRelModal();
-        // get relationship of the node from database
-        getRelationshipsRequest(nodeId).then(response => {
-            console.log("********relationships information********");
-            console.log(response.data);
-            console.log("********relationships information********");
-            let RelModalContent = [];
-            response.data.forEach((e, i) => {
-                RelModalContent.push({
-                    key: `${i}`,
-                    childNode: e.childNode,
-                    relDesc: e.relDesc,
-                });
-            });
-            setRelModalContent(RelModalContent);
-        }).catch(err => {
-            message.error('Network is unstable.')
-        })
-    }
-
-    // search property about the node
-    const searchProperty = (nodeId, nodeName) => {
-        setProModalContent(null);
-        setNodeName(nodeName)
-        showProModal();
-        // get properties of the node from database
-        getPropertiesRequest(nodeId).then(response => {
-            console.log("********properties information********");
-            console.log(response.data);
-            console.log("********properties information********");
-            let ProModalContent = [];
-            response.data.forEach((e, i) => {
-                ProModalContent.push({
-                    key: `${i}`,
-                    techTerm: e.techTerm,
-                    uniqCons: e.uniqueConstraint,
-                    existCons: e.existingConstraint,
-                });
-            });
-            setProModalContent(ProModalContent);
-        }).catch(err => {
-            message.error('Network is unstable.')
-        })
+    // Add property to business term
+    const addPropToBus = () => {
+        if (domainChosen === '' || businessTermChosen === '' || parameterChosen === '') {
+            message.error('Value is empty!');
+        } else {
+            setIsLoading(true);
+            let newparams = JSON.parse(businessTermChosen).businessTerm;
+            newparams.propertyList = [JSON.parse(parameterChosen).property];
+            console.log(newparams);
+            postPropertyToBusinessTerm(newparams).then(response => {
+                console.log(response);
+                setIsLoading(false);
+                // Update
+                getDatabaseList();
+                getInformation();
+                getNodes();
+            }).catch(err => {
+                message.error('Something wrong');
+                setIsLoading(false);
+            })
+        }
     }
 
     // Init => Get database list
     useEffect(() => {
         getDatabaseList();
+        getInformation();
+        getNodes();
     }, []);
 
     // Column for business terms
     const businessTermsColumn = [
-        {
-            title: 'Business Term',
-            dataIndex: 'businessTerm',
-            key: 'businessTerm',
-            width: 150,
-        },
         {
             title: 'Business Description',
             dataIndex: 'businessDesc',
@@ -255,19 +274,17 @@ function DBS() {
             title: 'Business Type',
             dataIndex: 'businessType',
             key: 'businessType',
-            width: 150,
         },
         {
-            title: 'Technical Term',
-            dataIndex: 'technicalTerm',
-            key: 'technicalTerm',
-            width: 150,
-        },
-        {
-            title: 'Technical Description',
-            dataIndex: 'technicalDesc',
-            key: 'technicalDesc',
-            width: 180,
+            title: 'Action',
+            key: 'action',
+            render: (text, record) => (
+                <Space size="middle">
+                    <Button type='primary' shape='round' onClick={() => showProperty(record.propertyList)}>
+                        Properties
+                    </Button>
+                </Space>
+            ),
         },
     ];
 
@@ -289,10 +306,10 @@ function DBS() {
             width: 250,
             render: (text, record) => (
                 <Space size="middle">
-                    <Button type='primary' shape='round' onClick={() => searchRelationship(record.nodeId, record.label)}>
+                    <Button type='primary' shape='round' onClick={() => showRelationships(record.relationshipList)}>
                         Relationships
                     </Button>
-                    <Button type='primary' shape='round' onClick={() => searchProperty(record.nodeId, record.label)}>
+                    <Button type='primary' shape='round' onClick={() => showProperty(record.propertyList)}>
                         Properties
                     </Button>
                 </Space>
@@ -303,9 +320,9 @@ function DBS() {
     // Columns for relationship
     const relModalColumn = [
         {
-            title: 'Child Node',
-            dataIndex: 'childNode',
-            key: 'childNode',
+            title: 'Relationship Id',
+            dataIndex: 'relId',
+            key: 'relId',
         },
         {
             title: 'Relationship Description',
@@ -335,7 +352,7 @@ function DBS() {
 
     return (
         <div className="container">
-            <Button type="primary" shape="round" style={{ width: 350 }} onClick={searchInformation}>
+            <Button type="primary" shape="round" style={{ width: 350 }} onClick={showModal}>
                 Browse Metadata
             </Button>
             <br />
@@ -372,33 +389,24 @@ function DBS() {
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
             >
-                {/* {databaseList.map((element, index) =>
-                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
-                )} */}
-                <Option key="1" value="example1">example1</Option>
-                <Option key="2" value="example2">example2</Option>
-                <Option key="3" value="example3">example3</Option>
-                <Option key="4" value="example4">example4</Option>
-                <Option key="5" value="example5">example5</Option>
+                {databaseList.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.DomainName}</Option>
+                )}
             </Select>
             <Select
                 showSearch
                 style={{ width: 200, marginLeft: 20 }}
                 placeholder="Database"
                 optionFilterProp="children"
-                onChange={onChangeOfDatabase}
+                value={domainChosen === '' ? null : domainChosen}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
+                disabled
             >
-                {/* {databaseList.map((element, index) =>
+                {databaseList.map((element, index) =>
                     <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
-                )} */}
-                <Option key="1" value="example1">example1</Option>
-                <Option key="2" value="example2">example2</Option>
-                <Option key="3" value="example3">example3</Option>
-                <Option key="4" value="example4">example4</Option>
-                <Option key="5" value="example5">example5</Option>
+                )}
             </Select>
             <br />
             <br />
@@ -412,14 +420,9 @@ function DBS() {
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
             >
-                {/* {databaseList.map((element, index) =>
-                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
-                )} */}
-                <Option key="1" value="example1">example1</Option>
-                <Option key="2" value="example2">example2</Option>
-                <Option key="3" value="example3">example3</Option>
-                <Option key="4" value="example4">example4</Option>
-                <Option key="5" value="example5">example5</Option>
+                {businessTerms.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.businessDesc}</Option>
+                )}
             </Select>
             <Select
                 showSearch
@@ -431,41 +434,36 @@ function DBS() {
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
             >
-                {/* {databaseList.map((element, index) =>
-                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
-                )} */}
-                <Option key="1" value="example1">example1</Option>
-                <Option key="2" value="example2">example2</Option>
-                <Option key="3" value="example3">example3</Option>
-                <Option key="4" value="example4">example4</Option>
-                <Option key="5" value="example5">example5</Option>
+                {propertyChoices.map((element, index) =>
+                    <Option key={index} value={JSON.stringify(element)}>{element.techTerm}</Option>
+                )}
             </Select>
             <br />
             <br />
-            <Button type="primary" shape="round">
+            {/* <Button type="primary" shape="round">
                 DELETE
-            </Button>
-            <Button type="primary" shape="round" style={{ marginLeft: '15px' }}>
+            </Button> */}
+            <Button type="primary" shape="round" onClick={addPropToBus} loading={isLoading}>
                 ADD
             </Button>
 
             {/* modal for showing Business Terms */}
-            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={1000}>
+            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={600} zIndex="2">
                 <Table columns={businessTermsColumn} dataSource={businessTerms} pagination={{ pageSize: 5 }} />
             </Modal>
 
             {/* modal for showing nodes */}
-            <Modal title={dbName} visible={isNodeModalVisible} onOk={handleNodeOk} onCancel={handleNodeCancel} maskClosable={false} width={600}>
+            <Modal title={dbName} visible={isNodeModalVisible} onOk={handleNodeOk} onCancel={handleNodeCancel} maskClosable={false} width={600} zIndex="2">
                 <Table columns={nodeModalColumn} dataSource={NodeModalContent} pagination={{ pageSize: 5 }} />
             </Modal>
 
             {/* modal for showing relationship */}
-            <Modal title={nodeName} visible={isRelModalVisible} onOk={handleRelOk} onCancel={handleRelCancel} maskClosable={false} width={600}>
+            <Modal visible={isRelModalVisible} onOk={handleRelOk} onCancel={handleRelCancel} maskClosable={false} width={600} zIndex="4">
                 <Table columns={relModalColumn} dataSource={RelModalContent} pagination={{ pageSize: 5 }} />
             </Modal>
 
             {/* modal for showing property */}
-            <Modal title={nodeName} visible={isProModalVisible} onOk={handleProOk} onCancel={handleProCancel} maskClosable={false} width={600}>
+            <Modal visible={isProModalVisible} onOk={handleProOk} onCancel={handleProCancel} maskClosable={false} width={600} zIndex="4">
                 <Table columns={proModalColumn} dataSource={ProModalContent} pagination={{ pageSize: 5 }} />
             </Modal>
         </div>
