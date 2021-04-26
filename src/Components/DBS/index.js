@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
-import { Select, Button, Modal, message, Table, Space, Tooltip } from 'antd';
+import { Select, Button, Modal, message, Table, Space, Tooltip, Divider} from 'antd';
 import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
 const { Option } = Select;
 
@@ -396,12 +396,11 @@ function DBS() {
 
     return (
         <div className="container">
+            <Divider style={{marginBottom: 40, fontSize: 14, color: 'gray'}}>Browse All Metadata</Divider>
             <Button type="primary" shape="round" style={{ width: 350 }} onClick={showModal}>
                 Browse Metadata
             </Button>
-            <br />
-            <br />
-            <br />
+            <Divider style={{marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray'}}>Browse Nodes According To DBname</Divider>
             <Select
                 showSearch
                 style={{ width: 200 }}
@@ -419,10 +418,7 @@ function DBS() {
             <Button type="primary" shape="round" style={{ marginLeft: '15px' }} onClick={searchNodeInformation}>
                 Browse Nodes
             </Button>
-            <br />
-            <br />
-            <br />
-            <br />
+            <Divider style={{marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray'}}>Operations on Business Terms</Divider>
             <Select
                 showSearch
                 style={{ width: 200 }}
