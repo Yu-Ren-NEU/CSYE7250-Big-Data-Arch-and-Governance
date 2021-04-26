@@ -16,9 +16,7 @@ export const getPropertiesBasedOnDBRequest = DBName =>
     Axios.get(`${url}/properties/dbName/${DBName}`)
 
 export const postPropertyToBusinessTerm = params => 
-    Axios.post(`${url}/businessterms`, {
-        data: params
-    })
+    Axios.post(`${url}/businessterms`, params)
 
 // export const getRelationshipsRequest = nodeId =>
 //     Axios.get(`${url}/relationships?node=${nodeId}`);

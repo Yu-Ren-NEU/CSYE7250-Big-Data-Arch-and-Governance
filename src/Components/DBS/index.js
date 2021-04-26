@@ -89,6 +89,7 @@ function DBS() {
         setDomainChosen(value);
         setPropertyChoices([]);
         getPropertiesBasedOnDBRequest(JSON.parse(value).DBName).then(response => {
+            setParameterChosen('');
             console.log("********properties list********");
             console.log(response.data);
             console.log("********properties list********");
@@ -233,21 +234,64 @@ function DBS() {
         if (domainChosen === '' || businessTermChosen === '' || parameterChosen === '') {
             message.error('Value is empty!');
         } else {
-            setIsLoading(true);
             let newparams = JSON.parse(businessTermChosen).businessTerm;
-            newparams.propertyList = [JSON.parse(parameterChosen).property];
-            console.log(newparams);
-            postPropertyToBusinessTerm(newparams).then(response => {
-                console.log(response);
-                setIsLoading(false);
-                // Update
-                getDatabaseList();
-                getInformation();
-                getNodes();
-            }).catch(err => {
-                message.error('Something wrong');
-                setIsLoading(false);
-            })
+            const newProperty = JSON.parse(parameterChosen).property;
+            // whether there is such a property in this business term
+            let hasOne = false;
+            for (var prop of newparams.propertyList) {
+                if (prop.propertyId === newProperty.propertyId) {
+                    hasOne = true;
+                    break;
+                }
+            }
+            if (!hasOne) {
+                setIsLoading(true);
+                newparams.propertyList.push(newProperty);
+                console.log(newparams);
+                postPropertyToBusinessTerm(newparams).then(response => {
+                    console.log(response);
+                    // Update
+                    window.location.reload();
+                }).catch(err => {
+                    message.error('Something wrong');
+                    setIsLoading(false);
+                })
+            } else {
+                message.error('There is already a property in this business term.')
+            }
+        }
+    }
+
+    // Delete property from business term
+    const deletePropFromBus = () => {
+        if (domainChosen === '' || businessTermChosen === '' || parameterChosen === '') {
+            message.error('Value is empty!');
+        } else {
+            let newparams = JSON.parse(businessTermChosen).businessTerm;
+            const newProperty = JSON.parse(parameterChosen).property;
+            // whether there is such a property in this business term
+            let hasOne = false;
+            for (var i = 0; i < newparams.propertyList.length; i ++) {
+                if (newparams.propertyList[i].propertyId === newProperty.propertyId) {
+                    hasOne = true;
+                    newparams.propertyList.splice(i, 1);
+                    break;
+                }
+            }
+            if (hasOne) {
+                setIsLoading(true);
+                console.log(newparams);
+                postPropertyToBusinessTerm(newparams).then(response => {
+                    console.log(response);
+                    // Update
+                    window.location.reload();
+                }).catch(err => {
+                    message.error('Something wrong');
+                    setIsLoading(false);
+                })
+            } else {
+                message.error('There is no such a property in this business term.')
+            }
         }
     }
 
@@ -430,6 +474,7 @@ function DBS() {
                 placeholder="Parameter"
                 optionFilterProp="children"
                 onChange={onChangeOfParameter}
+                value={parameterChosen === '' ? null : parameterChosen}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
@@ -440,10 +485,10 @@ function DBS() {
             </Select>
             <br />
             <br />
-            {/* <Button type="primary" shape="round">
+            <Button type="primary" shape="round" onClick={deletePropFromBus} loading={isLoading}>
                 DELETE
-            </Button> */}
-            <Button type="primary" shape="round" onClick={addPropToBus} loading={isLoading}>
+            </Button>
+            <Button type="primary" shape="round" style={{ marginLeft: 20 }} onClick={addPropToBus} loading={isLoading}>
                 ADD
             </Button>
 
