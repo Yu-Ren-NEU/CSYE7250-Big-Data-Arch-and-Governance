@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
-import { Select, Button, Modal, message, Table, Space, Tooltip, Divider} from 'antd';
+import { Select, Button, Modal, message, Table, Space, Tooltip, Divider } from 'antd';
 import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
 const { Option } = Select;
 
@@ -15,9 +15,11 @@ function DBS() {
     const [isNodeModalVisible, setIsNodeModalVisible] = useState(false);
     const [isRelModalVisible, setIsRelModalVisible] = useState(false);
     const [isProModalVisible, setIsProModalVisible] = useState(false);
+    const [isDomModalVisible, setIsDomModalVisible] = useState(false);
     const [NodeModalContent, setNodeModalContent] = useState([]);
     const [RelModalContent, setRelModalContent] = useState([]);
     const [ProModalContent, setProModalContent] = useState([]);
+    const [DomModalContent, setDomModalContent] = useState([]);
     const [domainChosen, setDomainChosen] = useState('');
     const [businessTermChosen, setBusinessTermChosen] = useState('');
     const [parameterChosen, setParameterChosen] = useState('');
@@ -74,6 +76,19 @@ function DBS() {
 
     const handleProCancel = () => {
         setIsProModalVisible(false);
+    };
+
+    // handle the modal for showing domain
+     const showDomModal = () => {
+        setIsDomModalVisible(true);
+    };
+
+    const handleDomOk = () => {
+        setIsDomModalVisible(false);
+    };
+
+    const handleDomCancel = () => {
+        setIsDomModalVisible(false);
     };
 
     // change value while value changed
@@ -155,6 +170,7 @@ function DBS() {
                     businessId: e.businessId,
                     businessDesc: e.businessDesc,
                     businessType: e.busType,
+                    domainList: e.domainList,
                     propertyList: e.propertyList,
                     businessTerm: e,
                 });
@@ -201,6 +217,20 @@ function DBS() {
         });
         setProModalContent(ProModalContent);
         showProModal();
+    }
+
+    // show domain of chosen business term
+    const showDomain = domainList => {
+        let DomModalContent = [];
+        domainList.forEach((e, i) => {
+            DomModalContent.push({
+                key: `${i}`,
+                dbName: e.dbName,
+                domainName: e.domainName,
+            })
+        });
+        setDomModalContent(DomModalContent);
+        showDomModal();
     }
 
     // show relationships of chosen business term
@@ -271,7 +301,7 @@ function DBS() {
             const newProperty = JSON.parse(parameterChosen).property;
             // whether there is such a property in this business term
             let hasOne = false;
-            for (var i = 0; i < newparams.propertyList.length; i ++) {
+            for (var i = 0; i < newparams.propertyList.length; i++) {
                 if (newparams.propertyList[i].propertyId === newProperty.propertyId) {
                     hasOne = true;
                     newparams.propertyList.splice(i, 1);
@@ -324,6 +354,9 @@ function DBS() {
             key: 'action',
             render: (text, record) => (
                 <Space size="middle">
+                    <Button type='primary' shape='round' onClick={() => showDomain(record.domainList)}>
+                        Domains
+                    </Button>
                     <Button type='primary' shape='round' onClick={() => showProperty(record.propertyList)}>
                         Properties
                     </Button>
@@ -394,13 +427,27 @@ function DBS() {
         },
     ];
 
+    // Columns for domain
+    const domModalColumn = [
+        {
+            title: 'Database Name',
+            dataIndex: 'dbName',
+            key: 'dbName',
+        },
+        {
+            title: 'Domain Name',
+            dataIndex: 'domainName',
+            key: 'domainName',
+        },
+    ];
+
     return (
         <div className="container">
-            <Divider style={{marginBottom: 40, fontSize: 14, color: 'gray'}}>Browse All Metadata</Divider>
+            <Divider style={{ marginBottom: 40, fontSize: 14, color: 'gray' }}>Browse All Metadata</Divider>
             <Button type="primary" shape="round" style={{ width: 350 }} onClick={showModal}>
                 Browse Metadata
             </Button>
-            <Divider style={{marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray'}}>Browse Nodes According To DBname</Divider>
+            <Divider style={{ marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray' }}>Browse Nodes According To DBname</Divider>
             <Select
                 showSearch
                 style={{ width: 200 }}
@@ -418,7 +465,7 @@ function DBS() {
             <Button type="primary" shape="round" style={{ marginLeft: '15px' }} onClick={searchNodeInformation}>
                 Browse Nodes
             </Button>
-            <Divider style={{marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray'}}>Operations on Business Terms</Divider>
+            <Divider style={{ marginBottom: 40, marginTop: 40, fontSize: 14, color: 'gray' }}>Operations on Business Terms</Divider>
             <Select
                 showSearch
                 style={{ width: 200 }}
@@ -489,7 +536,7 @@ function DBS() {
             </Button>
 
             {/* modal for showing Business Terms */}
-            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={600} zIndex="2">
+            <Modal title="Business Terms" visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} maskClosable={false} width={1000} zIndex="2">
                 <Table columns={businessTermsColumn} dataSource={businessTerms} pagination={{ pageSize: 5 }} />
             </Modal>
 
@@ -506,6 +553,11 @@ function DBS() {
             {/* modal for showing property */}
             <Modal visible={isProModalVisible} onOk={handleProOk} onCancel={handleProCancel} maskClosable={false} width={600} zIndex="4">
                 <Table columns={proModalColumn} dataSource={ProModalContent} pagination={{ pageSize: 5 }} />
+            </Modal>
+
+            {/* modal for showing Domains */}
+            <Modal visible={isDomModalVisible} onOk={handleDomOk} onCancel={handleDomCancel} maskClosable={false} width={600} zIndex="4">
+                <Table columns={domModalColumn} dataSource={DomModalContent} pagination={{ pageSize: 5 }} />
             </Modal>
         </div>
     );
