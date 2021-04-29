@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
 import { Select, Button, Modal, message, Table, Space, Tooltip, Divider } from 'antd';
-import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
+import { getDatabaseListRequest, getBusinessTermsRequest, getBusinessTermsBasedOnDBNameRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
 const { Option } = Select;
 
 function DBS() {
@@ -21,7 +21,9 @@ function DBS() {
     const [ProModalContent, setProModalContent] = useState([]);
     const [DomModalContent, setDomModalContent] = useState([]);
     const [domainChosen, setDomainChosen] = useState('');
+    const [dbNameChosen, setDbNameChosen] = useState('');
     const [businessTermChosen, setBusinessTermChosen] = useState('');
+    const [businessTermChoices, setBusinessTermChoices] = useState([]);
     const [parameterChosen, setParameterChosen] = useState('');
     const [propertyChoices, setPropertyChoices] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -79,7 +81,7 @@ function DBS() {
     };
 
     // handle the modal for showing domain
-     const showDomModal = () => {
+    const showDomModal = () => {
         setIsDomModalVisible(true);
     };
 
@@ -102,9 +104,32 @@ function DBS() {
     const onChangeOfDomain = value => {
         // const e = JSON.parse(value);
         setDomainChosen(value);
+        setDbNameChosen('');
+        setBusinessTermChosen('');
+        setParameterChosen('');
+        setBusinessTermChoices([]);
         setPropertyChoices([]);
+        getBusinessTermsBasedOnDBNameRequest(JSON.parse(value).DBName).then(response => {
+            console.log("********businessterm list********");
+            console.log(response.data);
+            console.log("********businessterm list********");
+            let businessTermChoices = [];
+            response.data.forEach((e, i) => {
+                businessTermChoices.push({
+                    key: `${i}`,
+                    businessId: e.businessId,
+                    businessDesc: e.businessDesc,
+                    businessType: e.busType,
+                    domainList: e.domainList,
+                    propertyList: e.propertyList,
+                    businessTerm: e,
+                });
+            });
+            setBusinessTermChoices(businessTermChoices);
+        }).catch(err => {
+            message.error('Network is unstable.')
+        })
         getPropertiesBasedOnDBRequest(JSON.parse(value).DBName).then(response => {
-            setParameterChosen('');
             console.log("********properties list********");
             console.log(response.data);
             console.log("********properties list********");
@@ -120,6 +145,13 @@ function DBS() {
         }).catch(err => {
             message.error('Network is unstable.')
         })
+    }
+
+    // change value while value changed
+    const onChangeOfDbName = value => {
+        // const e = JSON.parse(value);
+        setDbNameChosen(value);
+        setParameterChosen('');
     }
 
     // change value while value changed
@@ -485,14 +517,20 @@ function DBS() {
                 style={{ width: 200, marginLeft: 20 }}
                 placeholder="Database"
                 optionFilterProp="children"
-                value={domainChosen === '' ? null : domainChosen}
+                onChange={onChangeOfDbName}
+                value={dbNameChosen === '' ? null : dbNameChosen}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
-                disabled
+                disabled={domainChosen === ''}
             >
-                {databaseList.map((element, index) =>
-                    <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>
+                {databaseList.map((element, index) => {
+                    console.log(domainChosen);
+                    if (domainChosen !== '' && element.DomainName === JSON.parse(domainChosen).DomainName) {
+                        return <Option key={index} value={JSON.stringify(element)}>{element.DBName}</Option>;
+                    }
+                    return null;
+                }
                 )}
             </Select>
             <br />
@@ -503,11 +541,13 @@ function DBS() {
                 placeholder="Business Term"
                 optionFilterProp="children"
                 onChange={onChangeOfBusinessTerm}
+                value={businessTermChosen === '' ? null : businessTermChosen}
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
+                disabled={domainChosen === ''}
             >
-                {businessTerms.map((element, index) =>
+                {businessTermChoices.map((element, index) =>
                     <Option key={index} value={JSON.stringify(element)}>{element.businessDesc}</Option>
                 )}
             </Select>
@@ -521,6 +561,7 @@ function DBS() {
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
+                disabled={dbNameChosen === ''}
             >
                 {propertyChoices.map((element, index) =>
                     <Option key={index} value={JSON.stringify(element)}>{element.techTerm}</Option>

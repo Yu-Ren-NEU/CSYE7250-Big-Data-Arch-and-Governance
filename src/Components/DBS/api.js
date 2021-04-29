@@ -6,6 +6,9 @@ const url = 'http://localhost:8080'
 export const getBusinessTermsRequest = () =>
     Axios.get(`${url}/businessterms`, {});
 
+export const getBusinessTermsBasedOnDBNameRequest = DBName =>
+    Axios.get(`${url}/businessterms/dbName/${DBName}`);
+
 export const getDatabaseListRequest = () =>
     Axios.get(`${url}/getDomains`);
 
