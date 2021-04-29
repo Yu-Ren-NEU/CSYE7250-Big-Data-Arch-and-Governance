@@ -7,7 +7,7 @@ export const getBusinessTermsRequest = () =>
     Axios.get(`${url}/businessterms`, {});
 
 export const getBusinessTermsBasedOnDBNameRequest = DBName =>
-    Axios.get(`${url}/businessterms/dbName/${DBName}`);
+    Axios.get(`${url}/businessterms/dbname/${DBName}`);
 
 export const getDatabaseListRequest = () =>
     Axios.get(`${url}/getDomains`);

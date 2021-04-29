@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './index.css';
 import { Select, Button, Modal, message, Table, Space, Tooltip, Divider } from 'antd';
-import { getDatabaseListRequest, getBusinessTermsRequest, getBusinessTermsBasedOnDBNameRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
+import { getDatabaseListRequest, getBusinessTermsRequest, getNodesRequest, getPropertiesBasedOnDBRequest, postPropertyToBusinessTerm } from './api';
 const { Option } = Select;
 
 function DBS() {
@@ -109,26 +109,29 @@ function DBS() {
         setParameterChosen('');
         setBusinessTermChoices([]);
         setPropertyChoices([]);
-        getBusinessTermsBasedOnDBNameRequest(JSON.parse(value).DBName).then(response => {
-            console.log("********businessterm list********");
-            console.log(response.data);
-            console.log("********businessterm list********");
-            let businessTermChoices = [];
-            response.data.forEach((e, i) => {
-                businessTermChoices.push({
-                    key: `${i}`,
-                    businessId: e.businessId,
-                    businessDesc: e.businessDesc,
-                    businessType: e.busType,
-                    domainList: e.domainList,
-                    propertyList: e.propertyList,
-                    businessTerm: e,
-                });
+        const dbName = JSON.parse(value).DBName;
+        console.log(dbName);
+        console.log(businessTerms);
+        let businessTermChoices = [];
+        businessTerms.forEach((e, i) => {
+            e.domainList.forEach((element, index) => {
+                if(element.dbName === dbName) {
+                    businessTermChoices.push({
+                        key: `${i}`,
+                        businessId: e.businessTerm.businessId,
+                        businessDesc: e.businessTerm.businessDesc,
+                        businessType: e.businessTerm.busType,
+                        domainList: e.businessTerm.domainList,
+                        propertyList: e.businessTerm.propertyList,
+                        businessTerm: e.businessTerm,
+                    });
+                }
             });
-            setBusinessTermChoices(businessTermChoices);
-        }).catch(err => {
-            message.error('Network is unstable.')
-        })
+        });
+        console.log("********businessterm list********");
+        console.log(businessTermChoices);
+        console.log("********businessterm list********");
+        setBusinessTermChoices(businessTermChoices);
         getPropertiesBasedOnDBRequest(JSON.parse(value).DBName).then(response => {
             console.log("********properties list********");
             console.log(response.data);
